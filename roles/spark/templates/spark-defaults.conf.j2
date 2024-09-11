@@ -1,0 +1,9 @@
+# spark-defaults.conf
+spark.master                     {{ spark_master_url }}
+spark.eventLog.enabled           {{ spark_event_log_enabled }}
+spark.eventLog.dir               {{ spark_event_log_dir }}
+spark.history.fs.logDirectory    {{ spark_history_fs_log_dir }}
+
+spark.deploy.recoveryMode        {{ spark_recovery_mode }}
+spark.deploy.zookeeper.url       {{ zookeeper_url }}
+spark.deploy.zookeeper.dir       {{ zookeeper_dir }}

@@ -1,0 +1,87 @@
+---
+- name: Download Spark
+  get_url:
+    url: "https://archive.apache.org/dist/spark/spark-{{ spark_version }}/spark-{{ spark_version }}-bin-hadoop{{ hadoop_version }}.tgz"
+    dest: "/tmp/spark-{{ spark_version }}-bin-hadoop{{ hadoop_version }}.tgz"
+
+- name: Create spark group
+  group:
+    name: spark
+    state: present
+
+- name: Create spark user
+  user:
+    name: spark
+    group: spark
+    create_home: yes
+    shell: /bin/bash
+    password: "{{ 'root' | password_hash('sha512') }}"
+    state: present
+
+- name: Grant spark user sudo privileges
+  copy:
+    content: "spark ALL=(ALL) NOPASSWD:ALL"
+    dest: /etc/sudoers.d/spark
+    mode: '0440'
+
+- name: Extract Spark
+  unarchive:
+    src: "/tmp/spark-{{ spark_version }}-bin-hadoop{{ hadoop_version }}.tgz"
+    dest: "/opt/"
+    remote_src: yes
+
+- name: Change ownership of Spark files
+  file:
+    path: "/opt/spark-{{ spark_version }}-bin-hadoop{{ hadoop_version }}"
+    owner: spark
+    group: spark
+    recurse: yes
+
+- name: Symlink Spark
+  file:
+    src: "/opt/spark-{{ spark_version }}-bin-hadoop{{ hadoop_version }}"
+    dest: "/opt/spark"
+    state: link
+    owner: spark
+    group: spark
+
+- name: Configure Spark
+  template:
+    src: spark-env.sh.j2
+    dest: /opt/spark/conf/spark-env.sh
+    mode: 0755
+    owner: spark
+    group: spark
+
+- name: Configure Spark Defaults
+  template:
+    src: spark-defaults.conf.j2
+    dest: /opt/spark/conf/spark-defaults.conf
+    owner: spark
+    group: spark
+
+- name: Setup Masters file
+  template:
+    src: masters.j2
+    dest: /opt/spark/conf/masters
+    owner: spark
+    group: spark
+
+- name: Setup Workers file
+  template:
+    src: workers.j2
+    dest: /opt/spark/conf/workers
+    owner: spark
+    group: spark
+
+- name: Start Spark Master
+  when: "'master' in group_names or 'secondary_master' in group_names"
+  shell: /opt/spark/sbin/start-master.sh
+  become: true
+  become_user: spark
+
+- name: Start Spark Workers
+  when: "'worker' in group_names"
+  shell: "/opt/spark/sbin/start-slave.sh spark://{{ master_ips_ports | join(',') }}"
+  become: true
+  become_user: spark

@@ -1,0 +1,34 @@
+---
+spark_version: "3.5.1"
+hadoop_version: "3"
+# Fetch master IPs and ports from the inventory
+master_ips_ports: "{{ groups['masters'] | map('extract', hostvars, ['ansible_host']) | map('regex_replace', '(.+)', 'spark://\\1:7077') | list }}"
+#master_ips_ports:
+#  - "192.168.0.X1:7077"
+#  - "192.168.0.X2:7077"
+
+# Spark Environment Variables
+spark_master_host: "{{ ansible_hostname }}"  # Hostname will be derived dynamically per host
+java_home: "/usr/lib/jvm/java-11-openjdk-amd64"
+spark_worker_memory: "32g"
+spark_worker_cores: 12
+spark_daemon_memory: "32g"
+spark_master_port: 7077
+spark_master_webui_port: 8080
+spark_worker_port: 7078
+spark_worker_webui_port: 8081
+
+# High Availability Configuration
+zookeeper_url: "{{ groups['masters'] | map('extract', hostvars, ['ansible_host']) | map('regex_replace', '(.+)', '\\1:2181') | join(',') }}"
+zookeeper_dir: "/spark"
+
+
+# Spark Defaults Variables
+spark_master_url: "{{ master_ips_ports | join(',') }}"
+spark_event_log_enabled: true
+spark_event_log_dir: "file:///opt/spark/events"
+spark_history_fs_log_dir: "file:///opt/spark/history"
+spark_recovery_mode: "ZOOKEEPER"
+
+# Zookeeper Configurations
+zookeeper_version: "3.7.2"
