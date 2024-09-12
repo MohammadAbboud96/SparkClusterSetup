@@ -13,6 +13,13 @@
         dest: "/opt/"
         remote_src: yes
 
+    - name: Change ownership of ZooKeeper files
+      file:
+        path: "/opt/apache-zookeeper-{{ zookeeper_version }}-bin"
+        owner: spark
+        group: spark
+        recurse: yes
+
     - name: Symlink ZooKeeper
       file:
         src: "/opt/apache-zookeeper-{{ zookeeper_version }}-bin"
@@ -23,6 +30,8 @@
       file:
         path: /opt/zookeeper/data
         state: directory
+        owner: spark
+        group: spark
 
     - name: Configure ZooKeeper
       copy:
@@ -36,11 +45,16 @@
           server.{{ loop.index }}={{ hostvars[host]['ansible_host'] }}:2888:3888
           {% endfor %}
         dest: /opt/zookeeper/conf/zoo.cfg
+        owner: spark
+        group: spark
 
     - name: Create myid File
       copy:
         content: "{{ (groups['zookeepers'].index(inventory_hostname) + 1) | string }}"
         dest: /opt/zookeeper/data/myid
+        owner: spark
+        group: spark
 
     - name: Start ZooKeeper
       shell: /opt/zookeeper/bin/zkServer.sh start
+      become_user: spark

@@ -4,25 +4,6 @@
     url: "https://archive.apache.org/dist/spark/spark-{{ spark_version }}/spark-{{ spark_version }}-bin-hadoop{{ hadoop_version }}.tgz"
     dest: "/tmp/spark-{{ spark_version }}-bin-hadoop{{ hadoop_version }}.tgz"
 
-- name: Create spark group
-  group:
-    name: spark
-    state: present
-
-- name: Create spark user
-  user:
-    name: spark
-    group: spark
-    create_home: yes
-    shell: /bin/bash
-    password: "{{ 'root' | password_hash('sha512') }}"
-    state: present
-
-- name: Grant spark user sudo privileges
-  copy:
-    content: "spark ALL=(ALL) NOPASSWD:ALL"
-    dest: /etc/sudoers.d/spark
-    mode: '0440'
 
 - name: Extract Spark
   unarchive:
