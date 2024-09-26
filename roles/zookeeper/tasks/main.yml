@@ -1,60 +1,57 @@
 ---
-- name: Install ZooKeeper
-  become: yes
-  tasks:
-    - name: Download ZooKeeper
-      get_url:
-        url: "https://downloads.apache.org/zookeeper/zookeeper-{{ zookeeper_version }}/apache-zookeeper-{{ zookeeper_version }}-bin.tar.gz"
-        dest: "/tmp/apache-zookeeper-{{ zookeeper_version }}-bin.tar.gz"
+- name: Download ZooKeeper
+  get_url:
+    url: "https://downloads.apache.org/zookeeper/zookeeper-{{ zookeeper_version }}/apache-zookeeper-{{ zookeeper_version }}-bin.tar.gz"
+    dest: "/tmp/apache-zookeeper-{{ zookeeper_version }}-bin.tar.gz"
 
-    - name: Extract ZooKeeper
-      unarchive:
-        src: "/tmp/apache-zookeeper-{{ zookeeper_version }}-bin.tar.gz"
-        dest: "/opt/"
-        remote_src: yes
+- name: Extract ZooKeeper
+  unarchive:
+    src: "/tmp/apache-zookeeper-{{ zookeeper_version }}-bin.tar.gz"
+    dest: "/opt/"
+    remote_src: yes
 
-    - name: Change ownership of ZooKeeper files
-      file:
-        path: "/opt/apache-zookeeper-{{ zookeeper_version }}-bin"
-        owner: spark
-        group: spark
-        recurse: yes
+- name: Change ownership of ZooKeeper files
+  file:
+    path: "/opt/apache-zookeeper-{{ zookeeper_version }}-bin"
+    owner: spark
+    group: spark
+    recurse: yes
 
-    - name: Symlink ZooKeeper
-      file:
-        src: "/opt/apache-zookeeper-{{ zookeeper_version }}-bin"
-        dest: "/opt/zookeeper"
-        state: link
+- name: Symlink ZooKeeper
+  file:
+    src: "/opt/apache-zookeeper-{{ zookeeper_version }}-bin"
+    dest: "/opt/zookeeper"
+    state: link
 
-    - name: Create ZooKeeper Data Directory
-      file:
-        path: /opt/zookeeper/data
-        state: directory
-        owner: spark
-        group: spark
+- name: Create ZooKeeper Data Directory
+  file:
+    path: /opt/zookeeper/data
+    state: directory
+    owner: spark
+    group: spark
 
-    - name: Configure ZooKeeper
-      copy:
-        content: |
-          tickTime=2000
-          dataDir=/opt/zookeeper/data
-          clientPort=2181
-          initLimit=5
-          syncLimit=2
-          {% for host in groups['masters'] %}
-          server.{{ loop.index }}={{ hostvars[host]['ansible_host'] }}:2888:3888
-          {% endfor %}
-        dest: /opt/zookeeper/conf/zoo.cfg
-        owner: spark
-        group: spark
+- name: Configure ZooKeeper
+  copy:
+    content: |
+      tickTime=2000
+      dataDir=/opt/zookeeper/data
+      clientPort=2181
+      initLimit=5
+      syncLimit=2
+      {% for host in groups['masters'] %}
+      server.{{ loop.index }}={{ hostvars[host]['ansible_host'] }}:2888:3888
+      {% endfor %}
+    dest: /opt/zookeeper/conf/zoo.cfg
+    owner: spark
+    group: spark
 
-    - name: Create myid File
-      copy:
-        content: "{{ (groups['zookeepers'].index(inventory_hostname) + 1) | string }}"
-        dest: /opt/zookeeper/data/myid
-        owner: spark
-        group: spark
+- name: Create myid File
+  copy:
+    content: "{{ (groups['zookeepers'].index(inventory_hostname) + 1) | string }}"
+    dest: /opt/zookeeper/data/myid
+    owner: spark
+    group: spark
 
-    - name: Start ZooKeeper
-      shell: /opt/zookeeper/bin/zkServer.sh start
-      become_user: spark
+- name: Start ZooKeeper
+  shell: /opt/zookeeper/bin/zkServer.sh start
+  become_user: spark

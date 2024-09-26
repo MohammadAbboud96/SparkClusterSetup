@@ -1,0 +1,15 @@
+[Unit]
+Description=Apache Spark Worker
+After=network.target
+
+[Service]
+Type=forking
+User=spark
+Group=spark
+Environment="SPARK_MASTER_URL=spark://192.168.0.X1:7077,192.168.0.X2:7077"
+ExecStart=/bin/bash -c '/opt/spark/sbin/start-worker.sh $SPARK_MASTER_URL'
+ExecStop=/opt/spark/sbin/stop-worker.sh
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
