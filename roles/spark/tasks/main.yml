@@ -54,15 +54,3 @@
     dest: /opt/spark/conf/workers
     owner: spark
     group: spark
-
-- name: Start Spark Master
-  when: "'master' in group_names or 'secondary_master' in group_names"
-  shell: /opt/spark/sbin/start-master.sh
-  become: true
-  become_user: spark
-
-- name: Start Spark Workers
-  when: "'worker' in group_names"
-  shell: "/opt/spark/sbin/start-slave.sh spark://{{ master_ips_ports | join(',') }}"
-  become: true
-  become_user: spark
