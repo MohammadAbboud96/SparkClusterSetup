@@ -7,3 +7,8 @@ spark.history.fs.logDirectory    {{ spark_history_fs_log_dir }}
 spark.deploy.recoveryMode        {{ spark_recovery_mode }}
 spark.deploy.zookeeper.url       {{ zookeeper_url }}
 spark.deploy.zookeeper.dir       {{ zookeeper_dir }}
+
+spark.cleanup.enabled            true
+spark.cleanup.fileSystem.enabled  true
+spark.cleanup.local.enabled       true
+spark.worker.cleanup.interval     3600
